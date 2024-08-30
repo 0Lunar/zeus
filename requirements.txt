@@ -1,0 +1,6 @@
+colorama
+python-nmap
+requests
+urllib3
+paramiko
+ftplib

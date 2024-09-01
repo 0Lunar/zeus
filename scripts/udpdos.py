@@ -11,5 +11,5 @@ if __name__ == "__main__":
 
     ns = NetworkStress(ip, 80)
     print("Stressing " + ip)
-    ns.udp(threads=1000,count=100000, Bytes=512)
+    ns.udp(threads=16,count=1000000, Bytes=512,packet_count=10)
     print("Done")

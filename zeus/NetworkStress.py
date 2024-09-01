@@ -2,6 +2,7 @@ import urllib3
 from urllib.parse import urlencode
 import socket
 from concurrent.futures import ThreadPoolExecutor
+import threading
 import os
 import logging
 
@@ -21,28 +22,32 @@ class NetworkStress:
         self.host = host
         self.port = port
         self.sent = 0
-
+        self.lock = threading.Lock()
 
     def _sendUdp(self, count: int, Bytes: int, packet_count: int):
         """ Send UDP packets until it reaches the maximum number of packets set """
 
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        while self.sent < count:
+        while True:
+            with self.lock:
+                if self.sent >= count:
+                    break
+                self.sent += 1
+                current_sent = self.sent
+
             s.sendto(os.urandom(Bytes), (self.host, self.port))
-            self.sent += 1
 
-            if packet_count > 0 and self.sent % packet_count == 0:
-                print("Packet sent: " + str(self.sent))
-
-        self.sent = 0
+            if packet_count > 0 and current_sent % packet_count == 0:
+                print(f"Packet sent: {current_sent}")
 
 
     def udp(self, threads: int = 16, count: int = 10000, Bytes: int = 64, packet_count : int = -1):
         """ Start the UDP stress process """
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
-            executor.submit(self._sendUdp, count, Bytes, packet_count)
+            for _ in range(threads):
+                executor.submit(self._sendUdp, count, Bytes, packet_count)
         
 
     def _sendTcp(self, count: int, Bytes: int, packet_count: int):
@@ -76,7 +81,8 @@ class NetworkStress:
         """ Start the TCP stress process """
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
-            executor.submit(self._sendTcp, count, Bytes, packet_count)
+            for _ in range(threads):
+                executor.submit(self._sendTcp, count, Bytes, packet_count)
 
 
     def _checkUrl(self):
@@ -170,4 +176,5 @@ class NetworkStress:
                     self.port = 443
 
             with ThreadPoolExecutor(max_workers=threads) as executor:
-                executor.submit(self._sendHttp, body, count, method, packet_count, ContentType)
+                for _ in range(threads):
+                    executor.submit(self._sendHttp, body, count, method, packet_count, ContentType)

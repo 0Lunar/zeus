@@ -14,7 +14,7 @@ class Fuzzer:
         self.found = []
     
 
-    def urlFuzzer(self, url: str, wordlist: str, method: str = "GET", responses: list = [200], fsize: int = None, threads: int = 16, proxies: dict = None, timeout: int | float = 10, verify: bool = True):
+    def urlFuzzer(self, url: str, wordlist: str, method: str = "GET", responses: list = [200], fsize: int = None, threads: int = 16, proxies: dict = None, timeout: int | float = 10, verify: bool = True) -> list:
 
         self.found.clear()
 
@@ -38,7 +38,7 @@ class Fuzzer:
         return self.found
 
     
-    def _fuzzURL(self, url: str, method: str = "GET", responses: list = [200], fsize: int = None, proxies: dict = None, timeout: int | float = 10, verify: bool = True):
+    def _fuzzURL(self, url: str, method: str = "GET", responses: list = [200], fsize: int = None, proxies: dict = None, timeout: int | float = 10, verify: bool = True) -> None:
         word = None
         
         while word != "":
@@ -66,7 +66,7 @@ class Fuzzer:
         self.event.set()
 
     
-    def subdomainFuzzer(self, domain: str, wordlist: str, threads: int = 16):
+    def subdomainFuzzer(self, domain: str, wordlist: str, threads: int = 16) -> list:
         self.found.clear()
 
         #check if the domain exist
@@ -89,7 +89,7 @@ class Fuzzer:
         return self.found
 
     
-    def _fuzzSub(self, domain: str):
+    def _fuzzSub(self, domain: str) -> None:
         word = None
         
         while word != "":
@@ -111,7 +111,7 @@ class Fuzzer:
         self.event.set()
     
 
-    def headerFuzzer(self, url: str, wordlist: str, headers: dict, replacer: str = "FUZZ", method: str = "GET", responses: list = [200], fsize: int = None, threads: int = 16, proxies: dict = None, timeout: int | float = 10, verify: bool = True):
+    def headerFuzzer(self, url: str, wordlist: str, headers: dict, replacer: str = "FUZZ", method: str = "GET", responses: list = [200], fsize: int = None, threads: int = 16, proxies: dict = None, timeout: int | float = 10, verify: bool = True) -> list:
 
         self.found.clear()
 
@@ -134,7 +134,7 @@ class Fuzzer:
         return self.found
         
 
-    def _fuzzHeader(self, url, headers: dict, replacer: str = "FUZZ", method: str = "GET", responses: list = [200], fsize: int = None, proxies: dict = None, timeout: int | float = 10, verify: bool = True):
+    def _fuzzHeader(self, url, headers: dict, replacer: str = "FUZZ", method: str = "GET", responses: list = [200], fsize: int = None, proxies: dict = None, timeout: int | float = 10, verify: bool = True) -> None:
         word = None
 
         while word != "":

@@ -8,7 +8,7 @@ import ftplib
 
 
 class Bruteforce:
-    def __init__(self, host: str, usernames: list, passwords: list):
+    def __init__(self, host: str, usernames: list, passwords: list) -> None:
         self.host = host
         self.usernames = usernames
         self.passwords = passwords
@@ -62,7 +62,7 @@ class Bruteforce:
             logging.error(f"Request failed for {username}:{password} - {e}")
 
 
-    def http(self, threads: int = 16, printSuccess: bool = False):
+    def http(self, threads: int = 16, printSuccess: bool = False) -> dict:
         """ Starh the http bruteforce process """
 
         watched = []
@@ -99,7 +99,7 @@ class Bruteforce:
         return self.positive
 
 
-    def _sshAuth(self, username: str, password: str, port: int):
+    def _sshAuth(self, username: str, password: str, port: int) -> None:
         """ Try a single ssh login """
 
         try:
@@ -121,7 +121,7 @@ class Bruteforce:
         
 
 
-    def ssh(self, threads: int = 16, printSuccess: bool = False, port: int = 22):
+    def ssh(self, threads: int = 16, printSuccess: bool = False, port: int = 22) -> dict:
         """ Start the ssh bruteforce process """
 
         futures = []
@@ -147,7 +147,7 @@ class Bruteforce:
         return self.positive
 
     
-    def _ftpAuth(self, username, password):
+    def _ftpAuth(self, username, password) -> None:
         """ Try a single ftp login """
 
         try:
@@ -162,7 +162,7 @@ class Bruteforce:
             logging.error(e)
 
 
-    def ftp(self, threads: int = 16, printSuccess: bool = False):
+    def ftp(self, threads: int = 16, printSuccess: bool = False) -> dict:
         """ Start the ftp bruteforce process """
 
         futures = []

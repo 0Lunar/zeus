@@ -24,7 +24,7 @@ class NetworkStress:
         self.sent = 0
         self.lock = threading.Lock()
 
-    def _sendUdp(self, count: int, Bytes: int, packet_count: int):
+    def _sendUdp(self, count: int, Bytes: int, packet_count: int) -> None:
         """ Send UDP packets until it reaches the maximum number of packets set """
 
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -42,7 +42,7 @@ class NetworkStress:
                 print(f"Packet sent: {current_sent}")
 
 
-    def udp(self, threads: int = 16, count: int = 10000, Bytes: int = 64, packet_count : int = -1):
+    def udp(self, threads: int = 16, count: int = 10000, Bytes: int = 64, packet_count : int = -1) -> None:
         """ Start the UDP stress process """
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
@@ -50,7 +50,7 @@ class NetworkStress:
                 executor.submit(self._sendUdp, count, Bytes, packet_count)
         
 
-    def _sendTcp(self, count: int, Bytes: int, packet_count: int):
+    def _sendTcp(self, count: int, Bytes: int, packet_count: int) -> None:
         """ send TCP packets until it reaches the maximum number of packets set """
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,7 +77,7 @@ class NetworkStress:
         except OSError:
             logging.error("Network is unreachable")
         
-    def tcp(self, threads : int = 16, count: int = 10000, Bytes: int = 64, packet_count: int = -1):
+    def tcp(self, threads : int = 16, count: int = 10000, Bytes: int = 64, packet_count: int = -1) -> None:
         """ Start the TCP stress process """
 
         with ThreadPoolExecutor(max_workers=threads) as executor:
@@ -85,7 +85,7 @@ class NetworkStress:
                 executor.submit(self._sendTcp, count, Bytes, packet_count)
 
 
-    def _checkUrl(self):
+    def _checkUrl(self) -> bool:
         """ Check if the url is valid checking the protocol (http:// or https://) """
 
         if self.host.startswith("https://") == False and self.host.startswith("http://") == False:
@@ -123,7 +123,7 @@ class NetworkStress:
         return body
 
     
-    def _sendHttp(self, body, count: int, method: str, packet_count: int, ContentType: str):
+    def _sendHttp(self, body, count: int, method: str, packet_count: int, ContentType: str) -> None:
         """ send HTTP requests until it reaches the maximum number of packets set """
 
         http = urllib3.PoolManager()
@@ -156,7 +156,7 @@ class NetworkStress:
             logging.error("Error validating the SSL/TLS certificate: ", e)
 
 
-    def http(self, ContentType: str = "application/json", body = None, threads : int = 16, count: int = 10000, method: str = "GET", packet_count: int = -1):
+    def http(self, ContentType: str = "application/json", body = None, threads : int = 16, count: int = 10000, method: str = "GET", packet_count: int = -1) -> None:
         """ Start the HTTP stress process """
 
         if body != None:

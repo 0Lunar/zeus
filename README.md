@@ -6,9 +6,12 @@
 
 ## Features
 
-- **Network Scanning:** Uses `python-nmap` to perform network scans, identifying active hosts, open ports, and running services.
-- **Bruteforce:** Implements brute force attacks on various protocols and services, leveraging libraries like `paramiko` for SSH and `ftplib` for FTP.
-- **Network Stress:** Implements Network Stress attacks on Various protocols using the socket library for TCP/IP and UDP, and urllib3 for HTTP/HTTPS 
+- **Botnet**
+- **Bruteforce**
+- **Fuzzer**
+- **Network Scanner**
+- **Network Stresser**
+- **Vulnerability Scanner**
 
 ## Libraries Used
 
@@ -22,11 +25,11 @@ Zeus leverages the following Python libraries:
 
 ## Project Status
 
-The framework is currently in the **development** phase. It currently includes basic functionality for network scanning, brute force attacks and network stressing, with plans to significantly expand the feature set in the future.
+The framework is currently in the **development** phase. It currently includes basic functionality.
 
 ## Requirements
 
-Ensure you have Python 3.6 or higher installed. You can install the necessary dependencies by running:
+Ensure you have Python 3.8 or higher installed. You can install the necessary dependencies by running:
 
 ```bash
 pip install -r requirements.txt
@@ -50,6 +53,12 @@ cd zeus
 
 ```bash
 pip install -r requirements.txt
+```
+
+4. run the setup
+
+```bash
+python3 setup.py install
 ```
 
 *Note: Zeus is intended for educational and research purposes in security. The authors are not responsible for any misuse of this tool. Use Zeus only on systems for which you have legal authorization to test.*

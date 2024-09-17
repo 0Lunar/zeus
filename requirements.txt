@@ -1,6 +1,7 @@
-colorama
-python-nmap
-requests
-urllib3
-paramiko
-ftplib
+colorama>=0.4.6
+python-nmap==0.7.1
+requests>=2.25.1
+urllib3>=1.26.5
+paramiko>=3.4.1
+regex>=2022.10.31
+setuptools

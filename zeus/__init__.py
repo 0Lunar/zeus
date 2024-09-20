@@ -6,7 +6,7 @@ from .Bruteforce import Bruteforce
 from .Fuzzer import Fuzzer
 from .NetworkScanner import NetworkScan
 from .NetworkStress import NetworkStress
-from .VulnScanner import VulnScanner
+#from .VulnScanner import VulnScanner	(under development)
 
 
 def print_version():
